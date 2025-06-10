@@ -3,3 +3,36 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+# === Rider ===
+.idea/                          
+*.sln.iml                        
+.idea/**/workspace.xml           
+.idea/**/tasks.xml                
+.idea/**/dictionaries            
+
+# === VS Code ===
+.vscode/                         
+*.code-workspace                 
+
+
+bin/
+obj/
+*.user
+*.vspscc
+*.vssscc
+
+# Node
+node_modules/
+npm-debug.log*
+
+# VS
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# SQLite 
+*.db
+
+# log
+*.log
