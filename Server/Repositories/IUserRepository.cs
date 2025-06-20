@@ -5,9 +5,9 @@ namespace Server.Repositories;
 public interface IUserRepository
 {
     Task<IEnumerable<User>> GetAllAsync();
-    Task<User?> GetByIdAsync(Guid id);
+    Task<User?> GetByIdAsync(int id);
     Task<User> CreateAsync(User user);
     Task UpdateAsync(User user);
     Task DeleteAsync(User user);
-    Task<bool> ExistsAsync(Guid id);
+    Task<bool> ExistsAsync(int id);
 }

@@ -45,7 +45,7 @@ public class UsersController : ControllerBase
 
     // PUT: api/Users/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutUser(Guid id, User user)
+    public async Task<IActionResult> PutUser(int id, User user)
     {
         if (id != user.Id)
         {
@@ -72,7 +72,7 @@ public class UsersController : ControllerBase
 
     // DELETE: api/Users/5
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(Guid id)
+    public async Task<IActionResult> DeleteUser(int id)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null)
@@ -86,7 +86,7 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    private bool UserExists(Guid id)
+    private bool UserExists(int id)
     {
         return _context.Users.Any(e => e.Id == id);
     }
