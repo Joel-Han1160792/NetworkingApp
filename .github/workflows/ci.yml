@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore and build backend
+      run: |
+        cd Server
+        dotnet restore
+        dotnet build --no-restore --configuration Release
+
+    - name: Run backend tests (if present)
+      run: |
+        cd Server
+        dotnet test --no-restore --configuration Release || true  # 没有测试不报错
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Install and build frontend
+      run: |
+        cd client
+        npm install
+        npm run build

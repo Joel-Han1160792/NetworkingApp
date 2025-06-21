@@ -1,10 +1,19 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/vite.svg";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const [user, setUser] = useState<any>(null);      
+
+
+  const fetchUser = () => {
+    fetch("/api/users/1")
+      .then(res => res.json())
+      .then(setUser)
+      .catch(console.error);
+  };
 
   return (
     <>
@@ -21,15 +30,26 @@ function App() {
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
+        {/* ③ 新增 */}
+        <button onClick={fetchUser} style={{ marginLeft: 12 }}>
+          Fetch user from API
+        </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
+        {/* ④ 新增结果显示 */}
+        {user && (
+          <div style={{ textAlign: "left", marginTop: 12 }}>
+            <b>User data:</b>
+            <pre>{JSON.stringify(user, null, 2)}</pre>
+          </div>
+        )}
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
