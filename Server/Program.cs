@@ -44,6 +44,7 @@ builder.Services.AddAuthentication(options =>
 // Register Repository and Handler services
 
 builder.Services.AddScoped<IUserHandler, UserHandler>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

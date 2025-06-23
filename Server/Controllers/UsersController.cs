@@ -2,16 +2,17 @@ using Microsoft.AspNetCore.Mvc;
 using Server.Models;
 using Server.Handlers;
 using Server.DTOs;
-
+using Microsoft.AspNetCore.Authorization;
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly IUserHandler _userHandler;
-
-    public UsersController(IUserHandler userHandler)
+    private readonly IJwtService _jwtService;
+    public UsersController(IUserHandler userHandler, IJwtService jwtService)
     {
         _userHandler = userHandler;
+        _jwtService = jwtService;
     }
 
     // Register
@@ -31,6 +32,7 @@ public class UsersController : ControllerBase
     }
 
     // Login
+    
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
@@ -38,7 +40,9 @@ public class UsersController : ControllerBase
         {
             var user = await _userHandler.AuthenticateAsync(dto.Email, dto.Password);
             // Return JWT Token
-            return Ok(new { user.Id, user.Email, user.DisplayName });
+            var token = _jwtService.GenerateToken(user);
+            return Ok(new { token });
+           
         }
         catch (AuthenticationFailedException ex)
         {
@@ -46,20 +50,36 @@ public class UsersController : ControllerBase
         }
     }
 
-    // Search User
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetUserById(int id)
+    // Get User Profile
+[Authorize]
+[HttpGet("profile")]
+public async Task<IActionResult> GetProfile()
+{
+    var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier) 
+                   ?? User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub);
+
+    if (userIdClaim == null)
+        return Unauthorized(new { error = "Invalid token: missing user id." });
+
+    if (!int.TryParse(userIdClaim.Value, out int userId))
+        return Unauthorized(new { error = "Invalid user id format in token." });
+
+    var user = await _userHandler.GetUserByIdAsync(userId);
+    if (user == null)
+        return NotFound(new { error = "User not found." });
+
+    // Use UserProfileDto for response
+    var profile = new UserProfileDto
     {
-        try
-        {
-            var user = await _userHandler.GetUserByIdAsync(id);
-            return Ok(new { user.Id, user.Email, user.DisplayName, user.Bio, user.AvatarUrl });
-        }
-        catch (NotFoundException ex)
-        {
-            return NotFound(new { error = ex.Message });
-        }
-    }
+        Id = user.Id,
+        Email = user.Email ?? "",
+        DisplayName = user.DisplayName ?? "",
+        Bio = user.Bio,
+        AvatarUrl = user.AvatarUrl
+    };
+
+    return Ok(profile);
+}
 
     // Update Profile
     [HttpPut("{id}/profile")]
