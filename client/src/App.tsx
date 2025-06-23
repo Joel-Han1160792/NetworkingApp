@@ -2,7 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-
+import './index.css' 
 function App() {
   const [count, setCount] = useState(0);
   const [user, setUser] = useState<any>(null);      
@@ -48,6 +48,11 @@ function App() {
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
+        <div className="p-8">
+      <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        Hello Tailwind
+      </button>
+    </div>
     </>
   );
 }

@@ -26,8 +26,8 @@ jobs:
 
     - name: Run backend tests (if present)
       run: |
-        cd Server
-        dotnet test --no-restore --configuration Release || true  # 没有测试不报错
+        
+        dotnet test --no-restore --configuration Release 
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
