@@ -4,9 +4,9 @@ namespace Server.Handlers;
 
 public interface IUserHandler
 {
-    Task<IEnumerable<User>> GetAllUsersAsync();
-    Task<User?> GetUserByIdAsync(int id);
-    Task<User> CreateUserAsync(User user);
-    Task UpdateUserAsync(int id, User user);
-    Task DeleteUserAsync(int id);
+    Task<AppUser> RegisterAsync(string email, string password, string displayName);
+    Task<AppUser> AuthenticateAsync(string email, string password);
+    Task<AppUser> GetUserByIdAsync(int id);
+    Task UpdateProfileAsync(int userId, string displayName, string? bio, string? avatarUrl);
+    
 }

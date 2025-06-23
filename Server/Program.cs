@@ -2,15 +2,47 @@ using Server.Models;
 using Microsoft.EntityFrameworkCore;
 using Server.Repositories;
 using Server.Handlers;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=app.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//Add  AspNetCore.Identity
+builder.Services.AddIdentity<AppUser, IdentityRole<int>>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
+//Add JWT 
+var jwt = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwt["Issuer"],
+        ValidAudience = jwt["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]))
+    };
+});
+
+
 
 // Register Repository and Handler services
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 builder.Services.AddScoped<IUserHandler, UserHandler>();
 
 builder.Services.AddControllers();

@@ -16,12 +16,12 @@ public static class SeedData
             }
 
             context.Users.AddRange(
-                new User
+                new AppUser
                 {
                     Email = "john.doe@example.com",
                     DisplayName = "John Doe"
                 },
-                new User
+                new AppUser
                 {
                     Email = "jane.smith@example.com",
                     DisplayName = "Jane Smith"

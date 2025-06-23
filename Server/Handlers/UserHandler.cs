@@ -1,68 +1,70 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Server.Models;
-using Server.Repositories;
-
-
-
-namespace Server.Handlers;
+using Server.Handlers;
 
 public class UserHandler : IUserHandler
 {
-    private readonly IUserRepository _repo;
-    public UserHandler(IUserRepository repo) => _repo = repo;
+    private readonly UserManager<AppUser> _userManager;
+    private readonly SignInManager<AppUser> _signInManager;
 
-    public async Task<User?> RegisterAsync(string email, string password, string displayName)
+    public UserHandler(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
     {
-        if (await _repo.GetByEmailAsync(email) != null) return null;
-        var hash = BCrypt.Net.BCrypt.HashPassword(password);
-        var user = new User { Email = email, PasswordHash = hash, DisplayName = displayName };
-        return await _repo.CreateAsync(user);                 
+        _userManager = userManager;
+        _signInManager = signInManager;
     }
 
-    public async Task<User?> AuthenticateAsync(string email, string password)
+    public async Task<AppUser> RegisterAsync(string email, string password, string displayName)
     {
-        var user = await _repo.GetByEmailAsync(email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) return null;
+        //Check if the email address is used already
+        if (await _userManager.FindByEmailAsync(email) != null)
+            throw new ConflictException("Email already in use.");
+
+        var user = new AppUser { UserName = email, Email = email, DisplayName = displayName };
+        var result = await _userManager.CreateAsync(user, password); 
+        if (!result.Succeeded)
+        {
+            var errorMsg = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new ConflictException($"Registration failed: {errorMsg}");
+        }
         return user;
     }
 
-    public async Task<IEnumerable<User>> GetAllUsersAsync() =>
-        await _repo.GetAllAsync();
-
-    public async Task<User?> GetUserByIdAsync(int id) =>
-        await _repo.GetByIdAsync(id);
-
-    public async Task<User> CreateUserAsync(User user) =>
-        await _repo.CreateAsync(user);
-
-    public async Task UpdateUserAsync(int id, User user)
+    public async Task<AppUser> AuthenticateAsync(string email, string password)
     {
-        if (id != user.Id)
-            throw new ArgumentException("ID mismatch");
-        await _repo.UpdateAsync(user);
-    }
-
-    public async Task DeleteUserAsync(int id)
-    {
-        var user = await _repo.GetByIdAsync(id);
+        var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
-            throw new KeyNotFoundException("User not found");
-        await _repo.DeleteAsync(user);
+            throw new AuthenticationFailedException("User not found or password incorrect.");
+
+        var result = await _signInManager.CheckPasswordSignInAsync(user, password, false);
+        if (!result.Succeeded)
+            throw new AuthenticationFailedException("User not found or password incorrect.");
+
+        return user;
     }
 
-    public async Task<IEnumerable<User>> SearchAsync(string keyword)
+    public async Task<AppUser> GetUserByIdAsync(int id)
     {
-        return _repo.Query()
-            .Where(u => u.DisplayName.Contains(keyword) || u.Email.Contains(keyword))
-            .ToList();
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null)
+            throw new NotFoundException("User not found.");
+        return user;
     }
 
     public async Task UpdateProfileAsync(int userId, string displayName, string? bio, string? avatarUrl)
     {
-        var user = await _repo.GetByIdAsync(userId);
-        if (user == null) throw new Exception("User not found");
+        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null)
+            throw new NotFoundException("User not found.");
+
         user.DisplayName = displayName;
         user.Bio = bio;
         user.AvatarUrl = avatarUrl;
-        await _repo.UpdateAsync(user);
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errorMsg = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new ConflictException($"Update failed: {errorMsg}");
+        }
     }
 }

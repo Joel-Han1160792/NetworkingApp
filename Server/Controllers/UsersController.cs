@@ -1,93 +1,82 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Server.Models;
-
-namespace Server.Controllers;
+using Server.Handlers;
+using Server.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IUserHandler _userHandler;
 
-    public UsersController(AppDbContext context)
+    public UsersController(IUserHandler userHandler)
     {
-        _context = context;
+        _userHandler = userHandler;
     }
 
-    // GET: api/Users
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    // Register
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        return await _context.Users.ToListAsync();
-    }
-
-    // GET: api/Users/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
-    {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
-        {
-            return NotFound();
-        }
-        return user;
-    }
-
-    // POST: api/Users
-    [HttpPost]
-    public async Task<ActionResult<User>> PostUser(User user)
-    {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
-    }
-
-    // PUT: api/Users/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutUser(int id, User user)
-    {
-        if (id != user.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(user).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
-
         try
         {
-            await _context.SaveChangesAsync();
+            var user = await _userHandler.RegisterAsync(dto.Email, dto.Password, dto.DisplayName);
+            //NOT RETURN Password
+            return Ok(new { user.Id, user.Email, user.DisplayName });
         }
-        catch (DbUpdateConcurrencyException)
+        catch (ConflictException ex)
         {
-            if (!UserExists(id))
-            {
-                return NotFound();
-            }
-            throw;
+            return Conflict(new { error = ex.Message }); // 409
         }
-
-        return NoContent();
     }
 
-    // DELETE: api/Users/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
+    // Login
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
+        try
         {
-            return NotFound();
+            var user = await _userHandler.AuthenticateAsync(dto.Email, dto.Password);
+            // Return JWT Token
+            return Ok(new { user.Id, user.Email, user.DisplayName });
         }
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
+        catch (AuthenticationFailedException ex)
+        {
+            return Unauthorized(new { error = ex.Message }); // 401
+        }
     }
 
-    private bool UserExists(int id)
+    // Search User
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUserById(int id)
     {
-        return _context.Users.Any(e => e.Id == id);
+        try
+        {
+            var user = await _userHandler.GetUserByIdAsync(id);
+            return Ok(new { user.Id, user.Email, user.DisplayName, user.Bio, user.AvatarUrl });
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
+
+    // Update Profile
+    [HttpPut("{id}/profile")]
+    public async Task<IActionResult> UpdateProfile(int id, [FromBody] UpdateProfileDto dto)
+    {
+        try
+        {
+            await _userHandler.UpdateProfileAsync(id, dto.DisplayName, dto.Bio, dto.AvatarUrl);
+            return Ok();
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (ConflictException ex)
+        {
+            return Conflict(new { error = ex.Message });
+        }
     }
 }

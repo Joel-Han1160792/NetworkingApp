@@ -1,15 +1,17 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Server.Models;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<AppUser, IdentityRole<int>, int>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }
 
-    public DbSet<User> Users => Set<User>();
+ 
     public DbSet<Connection> Connections => Set<Connection>();
     public DbSet<Message> Messages => Set<Message>();
 
