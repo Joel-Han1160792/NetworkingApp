@@ -18,16 +18,18 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Restore and build backend
-      run: |
-        cd Server
-        dotnet restore
-        dotnet build --no-restore --configuration Release
+    - name: Restore all projects
+      run: dotnet restore
 
-    - name: Run backend tests (if present)
+    - name: Build backend
       run: |
-        
-        dotnet test --no-restore --configuration Release 
+        dotnet build --configuration Release
+
+    - name: Run backend tests
+      run: dotnet test --configuration Release
+
+    
+
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
