@@ -1,7 +1,7 @@
 import Logo from '../assets/logo_cleaned.png'
 export default function HeroSection() {
   return (
-    <section className="w-full flex flex-col lg:flex-row items-center py-36 px-0 bg-white mt-16">
+    <section id = 'hero-section' className="w-full flex flex-col lg:flex-row items-center py-36 px-0 bg-white mt-16">
       {/* leftside text */}
       <div className="flex-1 pl-0 flex flex-col items-start justify-center">
         <h2 className="mb-6 text-5xl font-bold text-blue-600">

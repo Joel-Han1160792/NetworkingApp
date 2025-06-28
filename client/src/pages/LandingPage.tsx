@@ -2,9 +2,9 @@ import React from "react";
 import HeroSection from "../components/HeroSection";
 import Navbar from "../components/Navbar";
 import ParallaxSection from "../components/Parallax";
-import ContentSection from "../components/Content";
+import ContentSection from "../components/ContentSection";
 import Footer from "../components/Footer";
-import FeatureSection from "../components/FeatureSection";
+
 
 
 
