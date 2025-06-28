@@ -1,58 +1,39 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+;
 import "./App.css";
-import './index.css' 
+import './index.css' ;
+import {LoginPage} from './pages/LoginPage';
+import LandingPage from './pages/LandingPage';
+
+
+
+
+// function Home() {
+//   return (
+//     <div>
+//       <h1>Home</h1>
+//       <Link to="/login">Login</Link>
+//       <br />
+//       <Link to="/register">Register</Link>
+//     </div>
+//   );
+// }
+
 function App() {
-  const [count, setCount] = useState(0);
-  const [user, setUser] = useState<any>(null);      
 
-
-  const fetchUser = () => {
-    fetch("/api/users/1")
-      .then(res => res.json())
-      .then(setUser)
-      .catch(console.error);
-  };
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        {/* ③ 新增 */}
-        <button onClick={fetchUser} style={{ marginLeft: 12 }}>
-          Fetch user from API
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-        {/* ④ 新增结果显示 */}
-        {user && (
-          <div style={{ textAlign: "left", marginTop: 12 }}>
-            <b>User data:</b>
-            <pre>{JSON.stringify(user, null, 2)}</pre>
-          </div>
-        )}
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-        <div className="p-8">
-      <button className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        Hello Tailwind
-      </button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage/>} />
+        
+        {/* <Route path="/register" element={<RegisterPage />} /> */}
+      </Routes>
+    </Router>
+    
     </>
   );
 }
