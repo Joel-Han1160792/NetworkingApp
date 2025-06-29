@@ -5,6 +5,8 @@ import "./App.css";
 import './index.css' ;
 import {LoginPage} from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
+import { ChatRoomPage } from './pages/ChatRoomPage';
+
 
 
 
@@ -29,7 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage/>} />
-        
+        <Route path="/chatroom" element={<ChatRoomPage/>} />
         {/* <Route path="/register" element={<RegisterPage />} /> */}
       </Routes>
     </Router>

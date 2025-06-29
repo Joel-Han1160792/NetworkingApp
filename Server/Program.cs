@@ -49,6 +49,8 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Add SignalR
+builder.Services.AddSignalR();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -57,7 +59,9 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:5173") // React app default port
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .SetIsOriginAllowed(_ => true)
+            .AllowCredentials();
     });
 });
 
@@ -74,6 +78,8 @@ app.UseHttpsRedirection();
 app.UseCors();
 // app.UseAuthorization();
 app.MapControllers();
+// SignalR Route
+app.MapHub<Server.Hubs.ChatHub>("/chatHub");
 
 // Ensure database is created and seeded
 using (var scope = app.Services.CreateScope())

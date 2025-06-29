@@ -42,7 +42,7 @@ export default function Navbar() {
         {isLanding ? (
           <>
             <a href="#hero-section" className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Home</a>
-            <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Developers</a>
+            <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Chat Room</a>
             <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Pricing</a>
             <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Blog</a>
             <a href="#about-us" className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">About Us</a>
@@ -50,7 +50,7 @@ export default function Navbar() {
         ) : (
           <>
             <Link to="/#hero-section" className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Home</Link>
-            <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Developers</a>
+            <Link to = '/chatroom' className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Chat Room</Link>
             <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Pricing</a>
             <a className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">Blog</a>
             <Link to="/#about-us" className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300">About Us</Link>

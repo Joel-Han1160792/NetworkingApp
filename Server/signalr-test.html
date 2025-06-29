@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SignalR Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+</head>
+<body>
+  <input id="userInput" type="text" value="Alice" />
+  <input id="messageInput" type="text" value="Hello SignalR!" />
+  <button onclick="sendMessage()">Send Message</button>
+  <ul id="messagesList"></ul>
+  <script>
+    // Connect to your SignalR Hub backend
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl("http://localhost:5011/chatHub") // Change port if needed
+      .build();
+
+    // ReceiveMessage handler
+    connection.on("ReceiveMessage", (user, message) => {
+      const li = document.createElement("li");
+      li.textContent = `${user}: ${message}`;
+      document.getElementById("messagesList").appendChild(li);
+    });
+
+    // Start the connection
+    connection.start().catch(err => console.error(err.toString()));
+
+    // SendMessage function
+    function sendMessage() {
+      const user = document.getElementById("userInput").value;
+      const message = document.getElementById("messageInput").value;
+      connection.invoke("SendMessage", user, message).catch(err => console.error(err.toString()));
+    }
+  </script>
+</body>
+</html>
