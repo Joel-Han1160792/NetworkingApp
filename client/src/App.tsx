@@ -6,35 +6,27 @@ import './index.css' ;
 import {LoginPage} from './pages/LoginPage';
 import LandingPage from './pages/LandingPage';
 import { ChatRoomPage } from './pages/ChatRoomPage';
+import { UserProvider } from './contexts/UserContext';
+import UserProfilePage from './pages/UserProfilePage';
 
 
-
-
-
-// function Home() {
-//   return (
-//     <div>
-//       <h1>Home</h1>
-//       <Link to="/login">Login</Link>
-//       <br />
-//       <Link to="/register">Register</Link>
-//     </div>
-//   );
-// }
 
 function App() {
 
 
   return (
     <>
+     <UserProvider>
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/chatroom" element={<ChatRoomPage/>} />
+        <Route path="/profile" element={<UserProfilePage/>} />
         {/* <Route path="/register" element={<RegisterPage />} /> */}
       </Routes>
     </Router>
+    </UserProvider>
     
     </>
   );

@@ -1,7 +1,40 @@
 import LoginImage from '../assets/200630_fciccolella_money_final.webp';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { jwtDecode } from 'jwt-decode';
+import type JwtPayload from '../types/jwt';
 
-export default function LoginForm() {
-    return (
+
+interface LoginProps {
+  onLogin: (user: JwtPayload) => void;
+}
+
+export const LoginForm: React.FC<LoginProps> = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error('Login failed');
+      const data = await res.json();
+      const token = data.token as string;
+      localStorage.setItem('token', token);
+      // Decode JWT Getting User Info
+      const decoded = jwtDecode<JwtPayload>(token);
+      onLogin(decoded); // pass to Login
+    } catch {
+      setError('Login failed');
+    }
+  };
+      return (
         <div className="min-h-screen w-full flex items-center justify-center bg-indigo-50 dark:bg-gray-900">
             <div className="w-full max-w-5xl flex rounded-xl overflow-hidden shadow-none bg-transparent">
                 {/* Image */}
@@ -22,12 +55,16 @@ export default function LoginForm() {
                     <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8 text-center">
                         Sign In
                     </h2>
-                    <form className="space-y-6">
+                    <form className="space-y-6"
+                          onSubmit={handleSubmit}>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                 Email
                             </label>
                             <input
+                                
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
                                 type="email"
                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                                     focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
@@ -41,6 +78,8 @@ export default function LoginForm() {
                             </label>
                             <input
                                 type="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
                                     focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
                                     dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 outline-none transition-all"
@@ -65,6 +104,7 @@ export default function LoginForm() {
                             </a>
                         </div>
                         <button
+                            type="submit"
                             className="
                                 w-full 
                                 bg-indigo-600 
@@ -80,6 +120,7 @@ export default function LoginForm() {
                         >
                             Sign In
                         </button>
+                        {error && <div className="text-red-500">{error}</div>}
                     </form>
                     <div className="mt-8 text-center text-base text-gray-600 dark:text-gray-300">
                         Don't have an account?
