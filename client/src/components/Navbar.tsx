@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Logo from '../assets/logo_cleaned.png';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import LogoutButton from './LogoutButton';
 import type { User } from '../types/user'
 
 export default function Navbar() {
-  const location = useLocation();
+  
 
   const { user }: { user: User | null } = useUser();
 
