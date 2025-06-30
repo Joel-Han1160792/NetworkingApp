@@ -22,12 +22,12 @@ public class UsersController : ControllerBase
         try
         {
             var user = await _userHandler.RegisterAsync(dto.Email, dto.Password, dto.DisplayName);
-            //NOT RETURN Password
-            return Ok(new { user.Id, user.Email, user.DisplayName });
+            var token = _jwtService.GenerateToken(user);
+            return Ok(new { token }); // Return token 
         }
         catch (ConflictException ex)
         {
-            return Conflict(new { error = ex.Message }); // 409
+            return Conflict(new { error = ex.Message });
         }
     }
 
@@ -100,3 +100,4 @@ public async Task<IActionResult> GetProfile()
         }
     }
 }
+

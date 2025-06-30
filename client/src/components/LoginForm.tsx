@@ -2,7 +2,7 @@ import LoginImage from '../assets/200630_fciccolella_money_final.webp';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import type JwtPayload from '../types/jwt';
+import type {JwtPayload} from '../types/jwt';
 
 
 interface LoginProps {
@@ -15,8 +15,11 @@ export const LoginForm: React.FC<LoginProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: FormEvent) => {
+    console.log(email, password)
     e.preventDefault();
     setError('');
+    console.log('handleSubmit called');
+  // ...your logic
     try {
       const res = await fetch('/api/users/login', {
         method: 'POST',
@@ -25,10 +28,16 @@ export const LoginForm: React.FC<LoginProps> = ({ onLogin }) => {
       });
       if (!res.ok) throw new Error('Login failed');
       const data = await res.json();
+      console.log('login api response:', data);
+
       const token = data.token as string;
       localStorage.setItem('token', token);
+      console.log('token:', token);
+
       // Decode JWT Getting User Info
       const decoded = jwtDecode<JwtPayload>(token);
+      console.log('decoded:', decoded);
+
       onLogin(decoded); // pass to Login
     } catch {
       setError('Login failed');
@@ -125,7 +134,7 @@ export const LoginForm: React.FC<LoginProps> = ({ onLogin }) => {
                     <div className="mt-8 text-center text-base text-gray-600 dark:text-gray-300">
                         Don't have an account?
                         <a
-                            href="#"
+                            href="/register"
                             className="ml-2 text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium"
                         >
                             Sign up

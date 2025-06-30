@@ -5,7 +5,7 @@ namespace Server.Models;
 public class AppUser : IdentityUser<int>  
 {
     //Customised attrubutes
-    public string DisplayName { get; set; } = string.Empty;
+    public string? DisplayName { get; set; } 
     public string? Bio { get; set; }
     public string? AvatarUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

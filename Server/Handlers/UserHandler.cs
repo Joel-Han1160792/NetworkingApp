@@ -14,13 +14,13 @@ public class UserHandler : IUserHandler
         _signInManager = signInManager;
     }
 
-    public async Task<AppUser> RegisterAsync(string email, string password, string displayName)
+    public async Task<AppUser> RegisterAsync(string email, string password, string username)
     {
         //Check if the email address is used already
         if (await _userManager.FindByEmailAsync(email) != null)
             throw new ConflictException("Email already in use.");
 
-        var user = new AppUser { UserName = email, Email = email, DisplayName = displayName };
+        var user = new AppUser { UserName = email, Email = email, DisplayName = username  };
         var result = await _userManager.CreateAsync(user, password); 
         if (!result.Succeeded)
         {
