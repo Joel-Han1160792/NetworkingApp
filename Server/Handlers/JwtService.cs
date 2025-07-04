@@ -26,7 +26,8 @@ namespace Server.Handlers
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
-            new Claim(ClaimTypes.Name, user.DisplayName ?? "")
+            new Claim(ClaimTypes.Name, user.DisplayName ?? ""),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
         // 2. Getting key from appsettings.json
@@ -44,5 +45,6 @@ namespace Server.Handlers
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-    }
+}
+
 }

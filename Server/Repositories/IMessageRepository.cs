@@ -5,7 +5,6 @@ namespace Server.Repositories;
 public interface IMessageRepository
 {
     Task<Message?> GetByIdAsync(int id);
-    Task AddAsync(Message message);
-    Task SaveChangesAsync();
+    Task SaveAsync(Message message);
     IQueryable<Message> Query();
 }

@@ -9,7 +9,11 @@ public class MessageRepository : IMessageRepository
     public MessageRepository(AppDbContext context) => _context = context;
 
     public Task<Message?> GetByIdAsync(int id) => _context.Messages.FindAsync(id).AsTask();
-    public async Task AddAsync(Message message) => await _context.Messages.AddAsync(message);
-    public Task SaveChangesAsync() => _context.SaveChangesAsync();
+    public async Task SaveAsync(Message message)
+{
+    await _context.Messages.AddAsync(message);
+    await _context.SaveChangesAsync();
+}
+
     public IQueryable<Message> Query() => _context.Messages.AsQueryable();
 }

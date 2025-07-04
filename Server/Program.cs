@@ -1,101 +1,112 @@
-using Server.Models;
-using Microsoft.EntityFrameworkCore;
-using Server.Repositories;
-using Server.Handlers;
-using Microsoft.AspNetCore.Identity;
+// Program.cs  ── 完整可直接替换
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Server.Handlers;
+using Server.Models;
+using Server.Repositories;
 using System.Text;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ──────────────── 1. 基础服务 ────────────────
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//Add  AspNetCore.Identity
 builder.Services.AddIdentity<AppUser, IdentityRole<int>>()
-    .AddEntityFrameworkStores<AppDbContext>();
+       .AddEntityFrameworkStores<AppDbContext>();
 
-//Add JWT 
-var jwt = builder.Configuration.GetSection("Jwt");
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwt["Issuer"],
-        ValidAudience = jwt["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]))
-    };
-});
+// ──────────────── 2. JWT 认证 ────────────────
+var jwtSection = builder.Configuration.GetSection("Jwt");
+Console.WriteLine($"[DEBUG] Jwt:Key = {builder.Configuration["Jwt:Key"]}");
+Console.WriteLine($"[DEBUG] Jwt:Issuer = {builder.Configuration["Jwt:Issuer"]}");
+Console.WriteLine($"[DEBUG] Jwt:Audience = {builder.Configuration["Jwt:Audience"]}");
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+       .AddJwtBearer(options =>
+       {
+           options.TokenValidationParameters = new TokenValidationParameters
+           {
+               ValidateIssuer           = true,
+               ValidateAudience         = true,
+               ValidateIssuerSigningKey = true,
+               ValidateLifetime         = true,
+               ValidIssuer   = jwtSection["Issuer"],
+               ValidAudience = jwtSection["Audience"],
+               IssuerSigningKey =
+                   new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]!))
+           };
 
+           // 允许 SignalR 在查询字符串里携带 token
+           options.Events = new JwtBearerEvents
+           {
+               OnMessageReceived = ctx =>
+               {
+                   var accessToken = ctx.Request.Query["access_token"];
+                   var path        = ctx.HttpContext.Request.Path;
 
-// Register Repository and Handler services
+                   if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+                       ctx.Token = accessToken;
 
-builder.Services.AddScoped<IUserHandler, UserHandler>();
-builder.Services.AddScoped<IJwtService, JwtService>();
+                   return Task.CompletedTask;
+               }
+           };
+       });
+
+// ──────────────── 3. 依赖注入 ────────────────
+builder.Services.AddScoped<IJwtService,       JwtService>();
+builder.Services.AddScoped<IUserHandler,      UserHandler>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// Add SignalR
 builder.Services.AddSignalR();
 
-// Add CORS
-builder.Services.AddCors(options =>
+// CORS：前端本地 Vite (http://localhost:5173)
+const string CorsPolicy = "Frontend";
+builder.Services.AddCors(opt =>
 {
-    options.AddDefaultPolicy(policy =>
+    opt.AddPolicy(CorsPolicy, p =>
     {
-        policy.WithOrigins("http://localhost:5173") // React app default port
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .SetIsOriginAllowed(_ => true)
-            .AllowCredentials();
+        p.WithOrigins("http://localhost:5173")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials();      // SignalR 必须
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ──────────────── 4. HTTP 管道顺序 ────────────────
+// a. 路由
+app.UseRouting();
+
+// b. CORS（一定要在 Routing 后、Auth 前）
+app.UseCors(CorsPolicy);
+
+// c. 认证 / 授权
+app.UseAuthentication();  // ⭐ 之前被注释掉，导致协商 401
+app.UseAuthorization();
+
+// d. 开发工具
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-app.UseCors();
-// app.UseAuthorization();
+// e. 映射终结点
 app.MapControllers();
-// SignalR Route
 app.MapHub<Server.Hubs.ChatHub>("/chatHub");
 
-// Ensure database is created and seeded
+// ──────────────── 5. 自动建库 & 种子 ────────────────
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        context.Database.EnsureCreated();
-        SeedData.Initialize(services);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-    }
+    var ctx = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    ctx.Database.EnsureCreated();
+    SeedData.Initialize(scope.ServiceProvider);
 }
 
 app.Run();

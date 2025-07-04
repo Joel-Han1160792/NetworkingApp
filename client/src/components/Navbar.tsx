@@ -60,11 +60,12 @@ export default function Navbar() {
       >
         Chat Room
       </Link>
-      <a
+      <Link
+        to="/message-1to1"
         className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300"
       >
-        Pricing
-      </a>
+        Message a friend
+      </Link>
       <a
         className="flex text-gray-600 dark:text-gray-200 hover:text-blue-500 dark:hover:text-blue-300 cursor-pointer transition-colors duration-300"
       >
