@@ -14,8 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddIdentity<AppUser, IdentityRole<int>>()
-       .AddEntityFrameworkStores<AppDbContext>();
+
 
 // ──────────────── 2. JWT 认证 ────────────────
 var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -23,36 +22,45 @@ Console.WriteLine($"[DEBUG] Jwt:Key = {builder.Configuration["Jwt:Key"]}");
 Console.WriteLine($"[DEBUG] Jwt:Issuer = {builder.Configuration["Jwt:Issuer"]}");
 Console.WriteLine($"[DEBUG] Jwt:Audience = {builder.Configuration["Jwt:Audience"]}");
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-       .AddJwtBearer(options =>
-       {
-           options.TokenValidationParameters = new TokenValidationParameters
-           {
-               ValidateIssuer           = true,
-               ValidateAudience         = true,
-               ValidateIssuerSigningKey = true,
-               ValidateLifetime         = true,
-               ValidIssuer   = jwtSection["Issuer"],
-               ValidAudience = jwtSection["Audience"],
-               IssuerSigningKey =
-                   new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"]!))
-           };
+// 1️⃣ Identity first – keep whatever you need (roles, UserManager, etc.)
+builder.Services.AddIdentity<AppUser, IdentityRole<int>>()
+       .AddEntityFrameworkStores<AppDbContext>();
 
-           // 允许 SignalR 在查询字符串里携带 token
-           options.Events = new JwtBearerEvents
-           {
-               OnMessageReceived = ctx =>
-               {
-                   var accessToken = ctx.Request.Query["access_token"];
-                   var path        = ctx.HttpContext.Request.Path;
+// 2️⃣ NOW set the default scheme = Bearer again
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+});
 
-                   if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
-                       ctx.Token = accessToken;
-
-                   return Task.CompletedTask;
-               }
-           };
-       });
+// 3️⃣ Normal JWT-Bearer registration (unchanged)
+builder.Services.AddAuthentication()          // ←  no options needed here
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+             ValidateIssuer           = true,
+            ValidateAudience         = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime         = true,
+            ValidIssuer   = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
+            IssuerSigningKey =
+                new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(jwtSection["Key"]!))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var token = ctx.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(token) &&
+                    ctx.HttpContext.Request.Path.StartsWithSegments("/chatHub"))
+                    ctx.Token = token;
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 // ──────────────── 3. 依赖注入 ────────────────
 builder.Services.AddScoped<IJwtService,       JwtService>();

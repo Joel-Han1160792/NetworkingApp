@@ -1,9 +1,7 @@
-
-export type User = {
-  id: string;
+export type UserProfileCardProps = {
+  
   name: string;
   email: string;
   avatarUrl?: string;
   connectionCount?: number;
 };
-

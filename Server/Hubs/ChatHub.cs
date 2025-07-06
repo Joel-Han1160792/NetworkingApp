@@ -5,7 +5,7 @@ using Server.Models;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Server.Hubs
-{   [Authorize]
+{ 
     public class ChatHub : Hub
     {
         // Mapping from userId (string) to connectionId
@@ -55,7 +55,9 @@ namespace Server.Hubs
 
         // One-to-one messaging
         public async Task SendPrivateMessage(string receiverUserId, string message)
-        {   Console.WriteLine($"[DEBUG] IsAuthenticated: {Context.User?.Identity?.IsAuthenticated}");
+
+        {   Console.WriteLine($"[DEBUG] IsAuthenticated: {Context.User}");
+            Console.WriteLine($"[DEBUG] IsAuthenticated: {Context.User?.Identity?.IsAuthenticated}");
             Console.WriteLine($"[DEBUG] AuthenticationType: {Context.User?.Identity?.AuthenticationType ?? "null"}");
 
             if (Context.User != null)

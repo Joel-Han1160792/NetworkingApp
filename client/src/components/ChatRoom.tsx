@@ -1,32 +1,36 @@
-import { useEffect, useRef, useState } from 'react';
-import * as signalR from '@microsoft/signalr';
-import { useUser } from '../contexts/UserContext';
+import { useEffect, useRef, useState } from "react";
+import * as signalR from "@microsoft/signalr";
+import { useUser } from "../contexts/UserContext";
 
 type Message = { from: string; message: string };
 
 export default function ChatRoom() {
   const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [guestName, setGuestName] = useState('Guest');
+  const [input, setInput] = useState("");
+  const [guestName, setGuestName] = useState("Guest");
   const connectionRef = useRef<signalR.HubConnection | null>(null);
 
   // Registered User
   const displayName = user?.name || guestName;
 
   useEffect(() => {
+    // ChatRoom.tsx
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('http://localhost:5011/chatHub')
+      .withUrl("http://localhost:5011/chatHub", {
+        accessTokenFactory: () => localStorage.getItem("token") ?? "",
+      })
       .withAutomaticReconnect()
       .build();
 
-    connection.on('ReceiveMessage', (from, message) => {
-      setMessages(prev => [...prev, { from, message }]);
+    connection.on("ReceiveMessage", (from, message) => {
+      setMessages((prev) => [...prev, { from, message }]);
     });
 
-    connection.start()
-      .then(() => console.log('SignalR connected!'))
-      .catch(err => console.error('SignalR connection error:', err));
+    connection
+      .start()
+      .then(() => console.log("SignalR connected!"))
+      .catch((err) => console.error("SignalR connection error:", err));
 
     connectionRef.current = connection;
     return () => {
@@ -35,9 +39,9 @@ export default function ChatRoom() {
   }, []);
 
   const sendMessage = async () => {
-    if (input.trim() === '' || !connectionRef.current) return;
-    await connectionRef.current.invoke('SendMessage', displayName, input);
-    setInput('');
+    if (input.trim() === "" || !connectionRef.current) return;
+    await connectionRef.current.invoke("SendMessage", displayName, input);
+    setInput("");
   };
 
   return (
@@ -47,7 +51,7 @@ export default function ChatRoom() {
         <div className="mb-4">
           <input
             value={guestName}
-            onChange={e => setGuestName(e.target.value)}
+            onChange={(e) => setGuestName(e.target.value)}
             className="border rounded px-2 py-1 mr-2"
             placeholder="Your Name"
           />
@@ -66,14 +70,15 @@ export default function ChatRoom() {
       <div className="h-60 overflow-y-auto border rounded mb-4 p-2 bg-gray-100 dark:bg-gray-700">
         {messages.map((msg, i) => (
           <div key={i}>
-            <b className="text-blue-600 dark:text-blue-300">{msg.from}:</b> {msg.message}
+            <b className="text-blue-600 dark:text-blue-300">{msg.from}:</b>{" "}
+            {msg.message}
           </div>
         ))}
       </div>
       <div className="flex">
         <input
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={(e) => setInput(e.target.value)}
           className="flex-1 border rounded px-2 py-1"
           placeholder="Type a message..."
         />

@@ -41,6 +41,7 @@ public class UsersController : ControllerBase
             var user = await _userHandler.AuthenticateAsync(dto.Email, dto.Password);
             // Return JWT Token
             var token = _jwtService.GenerateToken(user);
+        
             return Ok(new { token });
            
         }
